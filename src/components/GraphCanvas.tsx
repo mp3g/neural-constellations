@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, forwardRef, useImperativeHandle } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -9,14 +9,20 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   NodeTypes,
+  EdgeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
+import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
 
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
+};
+
+const edgeTypes: EdgeTypes = {
+  floating: FloatingEdge,
 };
 
 const initialNodes: Node[] = [
@@ -41,12 +47,17 @@ const initialNodes: Node[] = [
 ];
 
 const initialEdges: Edge[] = [
-  { id: 'e1-2', source: '1', target: '2', animated: true },
-  { id: 'e2-3', source: '2', target: '3', animated: true },
-  { id: 'e3-1', source: '3', target: '1', animated: true },
+  { id: 'e1-2', source: '1', target: '2', animated: true, type: 'floating' },
+  { id: 'e2-3', source: '2', target: '3', animated: true, type: 'floating' },
+  { id: 'e3-1', source: '3', target: '1', animated: true, type: 'floating' },
 ];
 
-export const GraphCanvas = () => {
+export interface GraphCanvasRef {
+  exportToJSON: () => void;
+  importFromJSON: () => void;
+}
+
+export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -145,6 +156,7 @@ export const GraphCanvas = () => {
             source: edge.source,
             target: edge.target,
             animated: edge.animated ?? true,
+            type: 'floating',
           }));
 
           setNodes(importedNodes);
@@ -159,6 +171,11 @@ export const GraphCanvas = () => {
     input.click();
   }, [setNodes, setEdges]);
 
+  useImperativeHandle(ref, () => ({
+    exportToJSON,
+    importFromJSON,
+  }));
+
   return (
     <div className="w-full h-full relative">
       <ReactFlow
@@ -169,6 +186,7 @@ export const GraphCanvas = () => {
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
         className="bg-[hsl(var(--graph-background))]"
       >
@@ -208,21 +226,6 @@ export const GraphCanvas = () => {
           </div>
         </div>
       )}
-      
-      <div className="absolute bottom-4 right-4 flex gap-2">
-        <button
-          onClick={importFromJSON}
-          className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-lg"
-        >
-          Import JSON
-        </button>
-        <button
-          onClick={exportToJSON}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-lg"
-        >
-          Export JSON
-        </button>
-      </div>
     </div>
   );
-};
+});
