@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -13,18 +13,31 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import { toast } from 'sonner';
-import { Button } from './ui/button';
-
-type LayoutMode = 'hierarchical' | 'circular' | 'grid' | 'force';
+import { X } from 'lucide-react';
 
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
 };
 
-const baseNodes = [
-  { id: '1', label: 'MAR' },
-  { id: '2', label: 'AER' },
-  { id: '3', label: 'TERRA' },
+const initialNodes: Node[] = [
+  {
+    id: '1',
+    type: 'custom',
+    position: { x: 150, y: 50 },
+    data: { label: 'MAR' },
+  },
+  {
+    id: '2',
+    type: 'custom',
+    position: { x: 350, y: 250 },
+    data: { label: 'AER' },
+  },
+  {
+    id: '3',
+    type: 'custom',
+    position: { x: 550, y: 250 },
+    data: { label: 'TERRA' },
+  },
 ];
 
 const initialEdges: Edge[] = [
@@ -33,88 +46,10 @@ const initialEdges: Edge[] = [
   { id: 'e3-1', source: '3', target: '1', animated: true },
 ];
 
-const calculateLayout = (mode: LayoutMode, nodeData: typeof baseNodes): Node[] => {
-  const nodeSpacing = 200;
-  
-  switch (mode) {
-    case 'hierarchical': {
-      // Top-down tree layout
-      return nodeData.map((node, i) => ({
-        id: node.id,
-        type: 'custom',
-        position: {
-          x: 150 + i * nodeSpacing,
-          y: i === 0 ? 50 : 250,
-        },
-        data: { label: node.label },
-      }));
-    }
-    
-    case 'circular': {
-      // Circular layout
-      const radius = 200;
-      const centerX = 400;
-      const centerY = 200;
-      return nodeData.map((node, i) => {
-        const angle = (i * 2 * Math.PI) / nodeData.length;
-        return {
-          id: node.id,
-          type: 'custom',
-          position: {
-            x: centerX + radius * Math.cos(angle),
-            y: centerY + radius * Math.sin(angle),
-          },
-          data: { label: node.label },
-        };
-      });
-    }
-    
-    case 'grid': {
-      // Grid layout
-      const cols = Math.ceil(Math.sqrt(nodeData.length));
-      return nodeData.map((node, i) => ({
-        id: node.id,
-        type: 'custom',
-        position: {
-          x: 100 + (i % cols) * nodeSpacing,
-          y: 100 + Math.floor(i / cols) * nodeSpacing,
-        },
-        data: { label: node.label },
-      }));
-    }
-    
-    case 'force': {
-      // Force-directed (simulated with random positioning)
-      return nodeData.map((node, i) => ({
-        id: node.id,
-        type: 'custom',
-        position: {
-          x: 200 + i * 150 + Math.random() * 100,
-          y: 150 + Math.random() * 200,
-        },
-        data: { label: node.label },
-      }));
-    }
-    
-    default:
-      return [];
-  }
-};
-
 export const GraphCanvas = () => {
-  const [layoutMode, setLayoutMode] = useState<LayoutMode>('hierarchical');
-  const [nodes, setNodes, onNodesChange] = useNodesState(calculateLayout('hierarchical', baseNodes));
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-
-  useEffect(() => {
-    const newNodes = calculateLayout(layoutMode, baseNodes.map(n => ({
-      ...n,
-      label: nodes.find(node => node.id === n.id)?.data.label || n.label,
-    })));
-    setNodes(newNodes);
-    toast.success(`Layout changed to ${layoutMode}`);
-  }, [layoutMode]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -241,43 +176,18 @@ export const GraphCanvas = () => {
         <Controls className="bg-card border-border" />
       </ReactFlow>
       
-      <div className="absolute top-4 left-4 bg-card p-3 rounded-lg border border-border shadow-lg">
-        <h3 className="text-xs font-semibold text-muted-foreground mb-2">Layout Mode</h3>
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={layoutMode === 'hierarchical' ? 'default' : 'outline'}
-            onClick={() => setLayoutMode('hierarchical')}
-          >
-            Tree
-          </Button>
-          <Button
-            size="sm"
-            variant={layoutMode === 'circular' ? 'default' : 'outline'}
-            onClick={() => setLayoutMode('circular')}
-          >
-            Circular
-          </Button>
-          <Button
-            size="sm"
-            variant={layoutMode === 'grid' ? 'default' : 'outline'}
-            onClick={() => setLayoutMode('grid')}
-          >
-            Grid
-          </Button>
-          <Button
-            size="sm"
-            variant={layoutMode === 'force' ? 'default' : 'outline'}
-            onClick={() => setLayoutMode('force')}
-          >
-            Force
-          </Button>
-        </div>
-      </div>
-      
       {selectedNode && (
         <div className="absolute top-4 right-4 bg-card p-4 rounded-lg border border-border shadow-lg space-y-3 w-64">
-          <h3 className="text-sm font-semibold text-foreground">Edit Node</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Edit Node</h3>
+            <button
+              onClick={() => setSelectedNode(null)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
           <div className="space-y-2">
             <label className="text-xs text-muted-foreground">Label</label>
             <input
