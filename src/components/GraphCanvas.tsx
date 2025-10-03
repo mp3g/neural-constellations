@@ -133,6 +133,11 @@ export const GraphCanvas = () => {
           : node
       )
     );
+    setSelectedNode((selected) =>
+      selected?.id === nodeId
+        ? { ...selected, data: { ...selected.data, label: newLabel } }
+        : selected
+    );
     toast.success('Node label updated');
   }, [setNodes]);
 
@@ -143,6 +148,11 @@ export const GraphCanvas = () => {
           ? { ...node, data: { ...node.data, color: newColor } }
           : node
       )
+    );
+    setSelectedNode((selected) =>
+      selected?.id === nodeId
+        ? { ...selected, data: { ...selected.data, color: newColor } }
+        : selected
     );
     toast.success('Node color updated');
   }, [setNodes]);
@@ -174,6 +184,45 @@ export const GraphCanvas = () => {
     
     toast.success('Graph exported to JSON');
   }, [nodes, edges]);
+
+  const importFromJSON = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e: Event) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const graphData = JSON.parse(event.target?.result as string);
+          
+          const importedNodes: Node[] = graphData.nodes.map((node: any) => ({
+            id: node.id,
+            type: 'custom',
+            position: node.position,
+            data: { label: node.label, color: node.color },
+          }));
+
+          const importedEdges: Edge[] = graphData.edges.map((edge: any) => ({
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            animated: edge.animated ?? true,
+          }));
+
+          setNodes(importedNodes);
+          setEdges(importedEdges);
+          toast.success('Graph imported successfully');
+        } catch (error) {
+          toast.error('Failed to import graph. Invalid JSON format.');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }, [setNodes, setEdges]);
 
   return (
     <div className="w-full h-full relative">
@@ -250,12 +299,20 @@ export const GraphCanvas = () => {
         </div>
       )}
       
-      <button
-        onClick={exportToJSON}
-        className="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-lg"
-      >
-        Export to JSON
-      </button>
+      <div className="absolute bottom-4 right-4 flex gap-2">
+        <button
+          onClick={importFromJSON}
+          className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-lg"
+        >
+          Import JSON
+        </button>
+        <button
+          onClick={exportToJSON}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-lg font-medium transition-colors shadow-lg"
+        >
+          Export JSON
+        </button>
+      </div>
     </div>
   );
 };
