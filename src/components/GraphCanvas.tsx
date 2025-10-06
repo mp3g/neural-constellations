@@ -1,4 +1,4 @@
-import { useCallback, useState, forwardRef, useImperativeHandle } from 'react';
+import { useCallback, useState, forwardRef, useImperativeHandle, useMemo } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -15,7 +15,8 @@ import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
+import { Button } from './ui/button';
 
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
@@ -62,6 +63,60 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
+  const toggleExpand = useCallback((nodeId: string) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...node.data, isExpanded: !node.data.isExpanded } }
+          : node
+      )
+    );
+  }, [setNodes]);
+
+  const visibleNodes = useMemo(() => {
+    const shouldShowNode = (node: Node): boolean => {
+      if (!node.data.parentId) return true;
+      
+      const parent = nodes.find(n => n.id === node.data.parentId);
+      if (!parent) return true;
+      
+      if (!parent.data.isExpanded) return false;
+      
+      return shouldShowNode(parent);
+    };
+
+    return nodes.map(node => ({
+      ...node,
+      data: {
+        ...node.data,
+        onToggleExpand: toggleExpand,
+      },
+    })).filter(shouldShowNode);
+  }, [nodes, toggleExpand]);
+
+  const visibleEdges = useMemo(() => {
+    const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+    return edges.filter(edge => 
+      visibleNodeIds.has(edge.source) && visibleNodeIds.has(edge.target)
+    );
+  }, [edges, visibleNodes]);
+
+  const addNewNode = useCallback(() => {
+    const newId = `${Date.now()}`;
+    const newNode: Node = {
+      id: newId,
+      type: 'custom',
+      position: { x: Math.random() * 400 + 100, y: Math.random() * 400 + 100 },
+      data: { 
+        label: `Node ${newId.slice(-4)}`,
+        isExpanded: true,
+        children: [],
+      },
+    };
+    setNodes((nds) => [...nds, newNode]);
+    toast.success('New node added');
+  }, [setNodes]);
+
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
     [setEdges]
@@ -84,7 +139,6 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         ? { ...selected, data: { ...selected.data, label: newLabel } }
         : selected
     );
-    toast.success('Node label updated');
   }, [setNodes]);
 
   const updateNodeColor = useCallback((nodeId: string, newColor: string) => {
@@ -100,7 +154,52 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         ? { ...selected, data: { ...selected.data, color: newColor } }
         : selected
     );
-    toast.success('Node color updated');
+  }, [setNodes]);
+
+  const updateNodeParent = useCallback((nodeId: string, parentId: string) => {
+    setNodes((nds) => {
+      const updatedNodes = nds.map((node) => {
+        if (node.id === nodeId) {
+          const oldParentId = node.data.parentId;
+          
+          if (oldParentId) {
+            const oldParent = nds.find(n => n.id === oldParentId);
+            if (oldParent) {
+              oldParent.data.children = (oldParent.data.children || []).filter((id: string) => id !== nodeId);
+            }
+          }
+          
+          return { ...node, data: { ...node.data, parentId: parentId || undefined } };
+        }
+        
+        if (node.id === parentId) {
+          const children = node.data.children || [];
+          if (!children.includes(nodeId)) {
+            return { 
+              ...node, 
+              data: { 
+                ...node.data, 
+                children: [...children, nodeId],
+                isExpanded: node.data.isExpanded ?? true
+              } 
+            };
+          }
+        }
+        
+        return node;
+      });
+      
+      return updatedNodes;
+    });
+    
+    setSelectedNode((selected) => {
+      if (selected?.id === nodeId) {
+        return { ...selected, data: { ...selected.data, parentId: parentId || undefined } };
+      }
+      return selected;
+    });
+    
+    toast.success('Parent node updated');
   }, [setNodes]);
 
   const exportToJSON = useCallback(() => {
@@ -148,7 +247,13 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
             id: node.id,
             type: 'custom',
             position: node.position,
-            data: { label: node.label, color: node.color },
+            data: { 
+              label: node.label, 
+              color: node.color,
+              parentId: node.parentId,
+              children: node.children || [],
+              isExpanded: node.isExpanded ?? true,
+            },
           }));
 
           const importedEdges: Edge[] = graphData.edges.map((edge: any) => ({
@@ -179,20 +284,33 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   return (
     <div className="w-full h-full relative">
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={visibleNodes}
+        edges={visibleEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        elementsSelectable
+        deleteKeyCode="Delete"
         fitView
         className="bg-[hsl(var(--graph-background))]"
       >
         <Background color="hsl(var(--graph-edge))" gap={16} />
         <Controls className="bg-card border-border" />
       </ReactFlow>
+
+      <div className="absolute top-4 left-4">
+        <Button
+          onClick={addNewNode}
+          size="sm"
+          className="shadow-lg"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Node
+        </Button>
+      </div>
       
       {selectedNode && (
         <div className="absolute top-4 right-4 bg-card p-4 rounded-lg border border-border shadow-lg space-y-3 w-64">
@@ -223,6 +341,23 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
               onChange={(e) => updateNodeColor(selectedNode.id, e.target.value)}
               className="w-full h-10 rounded-md cursor-pointer"
             />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs text-muted-foreground">Parent Node</label>
+            <select
+              value={selectedNode.data.parentId || ''}
+              onChange={(e) => updateNodeParent(selectedNode.id, e.target.value)}
+              className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+            >
+              <option value="">None</option>
+              {nodes
+                .filter(n => n.id !== selectedNode.id)
+                .map(node => (
+                  <option key={node.id} value={node.id}>
+                    {node.data.label}
+                  </option>
+                ))}
+            </select>
           </div>
         </div>
       )}
