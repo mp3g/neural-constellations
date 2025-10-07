@@ -16,7 +16,7 @@ import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
-import { X, Plus, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 
 const nodeTypes: NodeTypes = {
@@ -319,7 +319,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         <Background color="hsl(var(--graph-edge))" gap={16} />
         <Controls className="bg-card border-border">
           <ControlButton onClick={toggleExpandAll} title={allExpanded ? "Collapse All" : "Expand All"}>
-            {allExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {allExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </ControlButton>
         </Controls>
       </ReactFlow>
