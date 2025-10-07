@@ -8,14 +8,14 @@ const CustomNode = ({ data }: NodeProps) => {
   
   return (
     <div
-      className="px-6 py-4 rounded-lg border-2 transition-all duration-200 hover:scale-110 hover:shadow-lg cursor-pointer relative"
+      className="px-6 py-4 rounded-lg border-2 transition-all duration-200 hover:scale-110 cursor-pointer relative backdrop-blur-sm"
       style={{
-        backgroundColor: nodeColor,
+        backgroundColor: `${nodeColor}20`,
         borderColor: nodeColor,
-        boxShadow: `0 4px 20px ${nodeColor}40`,
+        boxShadow: `0 0 20px ${nodeColor}, 0 0 40px ${nodeColor}80, inset 0 0 20px ${nodeColor}30`,
       }}
     >
-      <Handle type="target" position={Position.Top} className="w-3 h-3 bg-accent" />
+      <Handle type="target" position={Position.Top} className="w-3 h-3" />
       <div className="flex items-center gap-2">
         {hasChildren && (
           <button
@@ -23,7 +23,8 @@ const CustomNode = ({ data }: NodeProps) => {
               e.stopPropagation();
               data.onToggleExpand?.(data.id);
             }}
-            className="text-primary-foreground hover:opacity-80 transition-opacity"
+            className="text-foreground hover:opacity-80 transition-opacity"
+            style={{ color: nodeColor }}
           >
             {data.isExpanded ? (
               <ChevronDown className="w-4 h-4" />
@@ -32,11 +33,14 @@ const CustomNode = ({ data }: NodeProps) => {
             )}
           </button>
         )}
-        <div className="text-lg font-bold text-primary-foreground">
+        <div 
+          className="text-lg font-bold drop-shadow-[0_0_8px_currentColor]"
+          style={{ color: nodeColor }}
+        >
           {data.label}
         </div>
       </div>
-      <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-accent" />
+      <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
     </div>
   );
 };

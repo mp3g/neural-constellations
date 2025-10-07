@@ -118,7 +118,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   }, [setNodes]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, type: 'floating' }, eds)),
     [setEdges]
   );
 

@@ -8,40 +8,40 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 17% 12%;
-    --foreground: 210 40% 98%;
+    --background: 240 10% 4%;
+    --foreground: 180 100% 90%;
 
-    --card: 220 15% 16%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 8% 8%;
+    --card-foreground: 180 100% 90%;
 
-    --popover: 220 15% 16%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 8% 8%;
+    --popover-foreground: 180 100% 90%;
 
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 180 100% 50%;
+    --primary-foreground: 240 10% 10%;
 
-    --secondary: 220 15% 24%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 320 100% 50%;
+    --secondary-foreground: 240 10% 10%;
 
-    --muted: 220 15% 24%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 8% 15%;
+    --muted-foreground: 180 20% 60%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 280 100% 60%;
+    --accent-foreground: 240 10% 10%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 240 10% 10%;
 
-    --border: 220 13% 28%;
-    --input: 220 13% 28%;
-    --ring: 262 83% 58%;
+    --border: 180 100% 50%;
+    --input: 240 8% 15%;
+    --ring: 180 100% 50%;
 
     --radius: 0.5rem;
     
-    --graph-node: 262 83% 58%;
-    --graph-node-hover: 262 83% 68%;
-    --graph-edge: 220 13% 48%;
-    --graph-background: 220 17% 10%;
+    --graph-node: 180 100% 50%;
+    --graph-node-hover: 180 100% 60%;
+    --graph-edge: 180 100% 50%;
+    --graph-background: 240 10% 3%;
 
     --sidebar-background: 0 0% 98%;
 
@@ -61,33 +61,33 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 220 17% 8%;
-    --foreground: 210 40% 98%;
+    --background: 240 10% 3%;
+    --foreground: 180 100% 90%;
 
-    --card: 220 15% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 8% 6%;
+    --card-foreground: 180 100% 90%;
 
-    --popover: 220 15% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 8% 6%;
+    --popover-foreground: 180 100% 90%;
 
-    --primary: 262 83% 58%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 180 100% 50%;
+    --primary-foreground: 240 10% 10%;
 
-    --secondary: 220 15% 20%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 320 100% 50%;
+    --secondary-foreground: 240 10% 10%;
 
-    --muted: 220 15% 20%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 8% 12%;
+    --muted-foreground: 180 20% 60%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 280 100% 60%;
+    --accent-foreground: 240 10% 10%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 240 10% 10%;
 
-    --border: 220 13% 24%;
-    --input: 220 13% 24%;
-    --ring: 262 83% 58%;
+    --border: 180 100% 50%;
+    --input: 240 8% 12%;
+    --ring: 180 100% 50%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -106,5 +106,29 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Neon glow effects for React Flow */
+  .react-flow__edge-path {
+    stroke: hsl(var(--graph-edge));
+    stroke-width: 2;
+    filter: drop-shadow(0 0 4px hsl(var(--graph-edge))) drop-shadow(0 0 8px hsl(var(--graph-edge)));
+  }
+  
+  .react-flow__edge.animated path {
+    stroke-dasharray: 5;
+    animation: dashdraw 0.5s linear infinite;
+  }
+  
+  @keyframes dashdraw {
+    to {
+      stroke-dashoffset: -10;
+    }
+  }
+  
+  .react-flow__handle {
+    background: hsl(var(--accent));
+    border: 2px solid hsl(var(--accent));
+    box-shadow: 0 0 10px hsl(var(--accent)), 0 0 20px hsl(var(--accent));
   }
 }
