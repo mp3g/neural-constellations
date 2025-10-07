@@ -32,19 +32,19 @@ const initialNodes: Node[] = [
     id: '1',
     type: 'custom',
     position: { x: 150, y: 50 },
-    data: { label: 'MAR' },
+    data: { label: 'MAR', isExpanded: true, children: [] },
   },
   {
     id: '2',
     type: 'custom',
     position: { x: 350, y: 250 },
-    data: { label: 'AER' },
+    data: { label: 'AER', isExpanded: true, children: [] },
   },
   {
     id: '3',
     type: 'custom',
     position: { x: 550, y: 250 },
-    data: { label: 'TERRA' },
+    data: { label: 'TERRA', isExpanded: true, children: [] },
   },
 ];
 
