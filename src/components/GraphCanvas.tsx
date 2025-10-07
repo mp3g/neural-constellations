@@ -355,6 +355,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
               <option value="">None</option>
               {nodes
                 .filter(n => n.id !== selectedNode.id)
+                .sort((a, b) => a.data.label.localeCompare(b.data.label))
                 .map(node => (
                   <option key={node.id} value={node.id}>
                     {node.data.label}
