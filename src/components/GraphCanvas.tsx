@@ -10,12 +10,13 @@ import ReactFlow, {
   useEdgesState,
   NodeTypes,
   EdgeTypes,
+  ControlButton,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from './ui/button';
 
 const nodeTypes: NodeTypes = {
@@ -62,6 +63,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const [allExpanded, setAllExpanded] = useState(true);
 
   const toggleExpand = useCallback((nodeId: string) => {
     setNodes((nds) =>
@@ -72,6 +74,20 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
       )
     );
   }, [setNodes]);
+
+  const toggleExpandAll = useCallback(() => {
+    const newExpandedState = !allExpanded;
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.data.children && node.data.children.length > 0) {
+          return { ...node, data: { ...node.data, isExpanded: newExpandedState } };
+        }
+        return node;
+      })
+    );
+    setAllExpanded(newExpandedState);
+    toast.success(newExpandedState ? 'All nodes expanded' : 'All nodes collapsed');
+  }, [allExpanded, setNodes]);
 
   const visibleNodes = useMemo(() => {
     const shouldShowNode = (node: Node): boolean => {
@@ -301,7 +317,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         className="bg-[hsl(var(--graph-background))]"
       >
         <Background color="hsl(var(--graph-edge))" gap={16} />
-        <Controls className="bg-card border-border" />
+        <Controls className="bg-card border-border">
+          <ControlButton onClick={toggleExpandAll} title={allExpanded ? "Collapse All" : "Expand All"}>
+            {allExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </ControlButton>
+        </Controls>
       </ReactFlow>
 
       <div className="absolute top-4 left-4">
