@@ -209,6 +209,9 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         label: node.data.label,
         position: node.position,
         color: node.data.color,
+        parentId: node.data.parentId,
+        children: node.data.children || [],
+        isExpanded: node.data.isExpanded ?? true,
       })),
       edges: edges.map(edge => ({
         id: edge.id,
