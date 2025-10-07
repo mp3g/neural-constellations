@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
-const CustomNode = ({ data }: NodeProps) => {
+const CustomNode = ({ id, data }: NodeProps) => {
   const nodeColor = data.color || 'hsl(var(--graph-node))';
   const hasChildren = data.children && data.children.length > 0;
   
@@ -21,7 +21,7 @@ const CustomNode = ({ data }: NodeProps) => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              data.onToggleExpand?.(data.id);
+              data.onToggleExpand?.(id);
             }}
             className="text-foreground hover:opacity-80 transition-opacity"
             style={{ color: nodeColor }}
