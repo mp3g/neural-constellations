@@ -312,6 +312,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         elementsSelectable
+        multiSelectionKeyCode="Shift"
         deleteKeyCode="Delete"
         fitView
         className="bg-[hsl(var(--graph-background))]"
