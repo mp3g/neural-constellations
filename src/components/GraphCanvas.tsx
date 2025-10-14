@@ -301,7 +301,19 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
 
   const exportToPNG = useCallback(() => {
     const nodesBounds = getRectOfNodes(nodes);
-    const transform = getTransformForBounds(nodesBounds, 1024, 768, 0.5, 2);
+    const padding = 100;
+    
+    const imageWidth = nodesBounds.width + padding * 2;
+    const imageHeight = nodesBounds.height + padding * 2;
+    
+    const transform = getTransformForBounds(
+      nodesBounds, 
+      imageWidth, 
+      imageHeight, 
+      0.5, 
+      2,
+      padding
+    );
 
     const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
     
@@ -312,11 +324,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
 
     toPng(viewportElement, {
       backgroundColor: '#1a1a2e',
-      width: 1024,
-      height: 768,
+      width: imageWidth,
+      height: imageHeight,
       style: {
-        width: '1024px',
-        height: '768px',
+        width: `${imageWidth}px`,
+        height: `${imageHeight}px`,
         transform: `translate(${transform[0]}px, ${transform[1]}px) scale(${transform[2]})`,
       },
     }).then((dataUrl) => {
