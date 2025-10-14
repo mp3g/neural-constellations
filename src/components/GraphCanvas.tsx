@@ -11,7 +11,6 @@ import ReactFlow, {
   NodeTypes,
   EdgeTypes,
   ControlButton,
-  useReactFlow,
   getRectOfNodes,
   getTransformForBounds,
 } from 'reactflow';
@@ -69,7 +68,6 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [allExpanded, setAllExpanded] = useState(true);
-  const { getNodes } = useReactFlow();
 
   const toggleExpand = useCallback((nodeId: string) => {
     setNodes((nds) =>
@@ -302,7 +300,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   }, [setNodes, setEdges]);
 
   const exportToPNG = useCallback(() => {
-    const nodesBounds = getRectOfNodes(getNodes());
+    const nodesBounds = getRectOfNodes(nodes);
     const transform = getTransformForBounds(nodesBounds, 1024, 768, 0.5, 2);
 
     const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
@@ -330,7 +328,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     }).catch(() => {
       toast.error('Failed to export graph as PNG');
     });
-  }, [getNodes]);
+  }, [nodes]);
 
   useImperativeHandle(ref, () => ({
     exportToJSON,
