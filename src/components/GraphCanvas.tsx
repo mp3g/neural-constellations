@@ -315,6 +315,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         multiSelectionKeyCode="Shift"
         deleteKeyCode="Delete"
         fitView
+        minZoom={0.1}
+        maxZoom={4}
         className="bg-[hsl(var(--graph-background))]"
       >
         <Background color="hsl(var(--graph-edge))" gap={16} />
