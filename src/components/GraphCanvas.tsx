@@ -11,7 +11,11 @@ import ReactFlow, {
   NodeTypes,
   EdgeTypes,
   ControlButton,
+  useReactFlow,
+  getRectOfNodes,
+  getTransformForBounds,
 } from 'reactflow';
+import { toPng } from 'html-to-image';
 import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
@@ -57,6 +61,7 @@ const initialEdges: Edge[] = [
 export interface GraphCanvasRef {
   exportToJSON: () => void;
   importFromJSON: () => void;
+  exportToPNG: () => void;
 }
 
 export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
@@ -64,6 +69,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [allExpanded, setAllExpanded] = useState(true);
+  const { getNodes } = useReactFlow();
 
   const toggleExpand = useCallback((nodeId: string) => {
     setNodes((nds) =>
@@ -295,9 +301,41 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     input.click();
   }, [setNodes, setEdges]);
 
+  const exportToPNG = useCallback(() => {
+    const nodesBounds = getRectOfNodes(getNodes());
+    const transform = getTransformForBounds(nodesBounds, 1024, 768, 0.5, 2);
+
+    const viewportElement = document.querySelector('.react-flow__viewport') as HTMLElement;
+    
+    if (!viewportElement) {
+      toast.error('Failed to export graph');
+      return;
+    }
+
+    toPng(viewportElement, {
+      backgroundColor: '#1a1a2e',
+      width: 1024,
+      height: 768,
+      style: {
+        width: '1024px',
+        height: '768px',
+        transform: `translate(${transform[0]}px, ${transform[1]}px) scale(${transform[2]})`,
+      },
+    }).then((dataUrl) => {
+      const link = document.createElement('a');
+      link.download = 'graph-export.png';
+      link.href = dataUrl;
+      link.click();
+      toast.success('Graph exported as PNG');
+    }).catch(() => {
+      toast.error('Failed to export graph as PNG');
+    });
+  }, [getNodes]);
+
   useImperativeHandle(ref, () => ({
     exportToJSON,
     importFromJSON,
+    exportToPNG,
   }));
 
   return (
