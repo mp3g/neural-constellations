@@ -227,6 +227,21 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     toast.success('Parent node updated');
   }, [setNodes]);
 
+  const updateNodeSize = useCallback((nodeId: string, width: number, height: number) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === nodeId
+          ? { ...node, style: { ...node.style, width, height } }
+          : node
+      )
+    );
+    setSelectedNode((selected) =>
+      selected?.id === nodeId
+        ? { ...selected, style: { ...selected.style, width, height } }
+        : selected
+    );
+  }, [setNodes]);
+
   const exportToJSON = useCallback(() => {
     const graphData = {
       nodes: nodes.map(node => ({
@@ -444,6 +459,28 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
                   </option>
                 ))}
             </select>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Width</label>
+              <input
+                type="number"
+                value={Number(selectedNode.style?.width) || 150}
+                onChange={(e) => updateNodeSize(selectedNode.id, Number(e.target.value), Number(selectedNode.style?.height) || 80)}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+                min="100"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Height</label>
+              <input
+                type="number"
+                value={Number(selectedNode.style?.height) || 80}
+                onChange={(e) => updateNodeSize(selectedNode.id, Number(selectedNode.style?.width) || 150, Number(e.target.value))}
+                className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+                min="50"
+              />
+            </div>
           </div>
         </div>
       )}
