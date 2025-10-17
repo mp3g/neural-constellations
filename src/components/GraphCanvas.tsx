@@ -36,18 +36,21 @@ const initialNodes: Node[] = [
     type: 'custom',
     position: { x: 150, y: 50 },
     data: { label: 'MAR', isExpanded: true, children: [] },
+    style: { width: 150, height: 80 },
   },
   {
     id: '2',
     type: 'custom',
     position: { x: 350, y: 250 },
     data: { label: 'AER', isExpanded: true, children: [] },
+    style: { width: 150, height: 80 },
   },
   {
     id: '3',
     type: 'custom',
     position: { x: 550, y: 250 },
     data: { label: 'TERRA', isExpanded: true, children: [] },
+    style: { width: 150, height: 80 },
   },
 ];
 
@@ -110,6 +113,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
       data: {
         ...node.data,
         onToggleExpand: toggleExpand,
+        selected: selectedNode?.id === node.id,
       },
     })).filter(shouldShowNode);
   }, [nodes, toggleExpand]);
@@ -132,6 +136,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         isExpanded: true,
         children: [],
       },
+      style: { width: 150, height: 80 },
     };
     setNodes((nds) => [...nds, newNode]);
     toast.success('New node added');
@@ -232,6 +237,8 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         parentId: node.data.parentId,
         children: node.data.children || [],
         isExpanded: node.data.isExpanded ?? true,
+        width: node.style?.width || node.width || 150,
+        height: node.style?.height || node.height || 80,
       })),
       edges: edges.map(edge => ({
         id: edge.id,
@@ -276,6 +283,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
               parentId: node.parentId,
               children: node.children || [],
               isExpanded: node.isExpanded ?? true,
+            },
+            style: { 
+              width: node.width || 150, 
+              height: node.height || 80 
             },
           }));
 

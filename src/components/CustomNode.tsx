@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Handle, Position, NodeProps } from 'reactflow';
+import { Handle, Position, NodeProps, NodeResizer } from 'reactflow';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 const CustomNode = ({ id, data }: NodeProps) => {
@@ -7,14 +7,21 @@ const CustomNode = ({ id, data }: NodeProps) => {
   const hasChildren = data.children && data.children.length > 0;
   
   return (
-    <div
-      className="px-6 py-4 rounded-lg border-2 transition-all duration-200 hover:scale-110 cursor-pointer relative backdrop-blur-sm"
-      style={{
-        backgroundColor: `${nodeColor}20`,
-        borderColor: nodeColor,
-        boxShadow: `0 0 20px ${nodeColor}, 0 0 40px ${nodeColor}80, inset 0 0 20px ${nodeColor}30`,
-      }}
-    >
+    <>
+      <NodeResizer 
+        minWidth={100} 
+        minHeight={50}
+        color={nodeColor}
+        isVisible={data.selected}
+      />
+      <div
+        className="px-6 py-4 rounded-lg border-2 transition-all duration-200 hover:scale-110 cursor-pointer relative backdrop-blur-sm w-full h-full flex items-center justify-center"
+        style={{
+          backgroundColor: `${nodeColor}20`,
+          borderColor: nodeColor,
+          boxShadow: `0 0 20px ${nodeColor}, 0 0 40px ${nodeColor}80, inset 0 0 20px ${nodeColor}30`,
+        }}
+      >
       <Handle type="target" position={Position.Top} className="w-3 h-3" />
       <div className="flex items-center gap-2">
         {hasChildren && (
@@ -41,7 +48,8 @@ const CustomNode = ({ id, data }: NodeProps) => {
         </div>
       </div>
       <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
-    </div>
+      </div>
+    </>
   );
 };
 
