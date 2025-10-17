@@ -143,8 +143,51 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   }, [setNodes]);
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, type: 'floating' }, eds)),
-    [setEdges]
+    (params: Connection) => {
+      setEdges((eds) => addEdge({ ...params, animated: true, type: 'floating' }, eds));
+      
+      // Set parent-child relationship: source becomes parent of target
+      if (params.source && params.target) {
+        setNodes((nds) => {
+          return nds.map((node) => {
+            // Update target node to have source as parent
+            if (node.id === params.target) {
+              const oldParentId = node.data.parentId;
+              
+              // Remove from old parent's children if it had one
+              if (oldParentId) {
+                const oldParent = nds.find(n => n.id === oldParentId);
+                if (oldParent) {
+                  oldParent.data.children = (oldParent.data.children || []).filter((id: string) => id !== params.target);
+                }
+              }
+              
+              return { ...node, data: { ...node.data, parentId: params.source } };
+            }
+            
+            // Update source node to include target in children
+            if (node.id === params.source) {
+              const children = node.data.children || [];
+              if (!children.includes(params.target)) {
+                return { 
+                  ...node, 
+                  data: { 
+                    ...node.data, 
+                    children: [...children, params.target],
+                    isExpanded: node.data.isExpanded ?? true
+                  } 
+                };
+              }
+            }
+            
+            return node;
+          });
+        });
+        
+        toast.success('Nodes connected - parent relationship established');
+      }
+    },
+    [setEdges, setNodes]
   );
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
