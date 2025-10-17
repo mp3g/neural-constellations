@@ -144,6 +144,27 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
 
   const onConnect = useCallback(
     (params: Connection) => {
+      // Prevent self-reference
+      if (params.source === params.target) {
+        toast.error('Cannot connect a node to itself');
+        return;
+      }
+
+      // Check for circular dependency: verify that source is not a descendant of target
+      if (params.source && params.target) {
+        const isDescendant = (nodeId: string, ancestorId: string): boolean => {
+          const node = nodes.find(n => n.id === nodeId);
+          if (!node || !node.data.parentId) return false;
+          if (node.data.parentId === ancestorId) return true;
+          return isDescendant(node.data.parentId, ancestorId);
+        };
+
+        if (isDescendant(params.source, params.target)) {
+          toast.error('Cannot create circular parent-child relationship');
+          return;
+        }
+      }
+
       setEdges((eds) => addEdge({ ...params, animated: true, type: 'floating' }, eds));
       
       // Set parent-child relationship: source becomes parent of target
@@ -187,7 +208,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         toast.success('Nodes connected - parent relationship established');
       }
     },
-    [setEdges, setNodes]
+    [setEdges, setNodes, nodes]
   );
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
@@ -225,6 +246,27 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   }, [setNodes]);
 
   const updateNodeParent = useCallback((nodeId: string, parentId: string) => {
+    // Prevent self-reference
+    if (nodeId === parentId) {
+      toast.error('Cannot set a node as its own parent');
+      return;
+    }
+
+    // Check for circular dependency: verify that parent is not a descendant of node
+    if (parentId) {
+      const isDescendant = (checkNodeId: string, ancestorId: string): boolean => {
+        const node = nodes.find(n => n.id === checkNodeId);
+        if (!node || !node.data.parentId) return false;
+        if (node.data.parentId === ancestorId) return true;
+        return isDescendant(node.data.parentId, ancestorId);
+      };
+
+      if (isDescendant(parentId, nodeId)) {
+        toast.error('Cannot create circular parent-child relationship');
+        return;
+      }
+    }
+
     setNodes((nds) => {
       const updatedNodes = nds.map((node) => {
         if (node.id === nodeId) {
@@ -268,7 +310,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     });
     
     toast.success('Parent node updated');
-  }, [setNodes]);
+  }, [setNodes, nodes]);
 
   const updateNodeSize = useCallback((nodeId: string, width: number, height: number) => {
     setNodes((nds) =>
