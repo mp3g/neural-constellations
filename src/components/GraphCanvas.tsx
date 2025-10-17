@@ -68,9 +68,40 @@ export interface GraphCanvasRef {
 
 export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [allExpanded, setAllExpanded] = useState(true);
+
+  // Custom edge change handler to sync parent-child relationships
+  const onEdgesChange = useCallback((changes: any[]) => {
+    onEdgesChangeInternal(changes);
+    
+    // Handle edge deletions
+    changes.forEach((change) => {
+      if (change.type === 'remove') {
+        const edgeToRemove = edges.find(e => e.id === change.id);
+        if (edgeToRemove) {
+          // Remove parent-child relationship
+          setNodes((nds) => {
+            return nds.map((node) => {
+              // Remove parentId from target node
+              if (node.id === edgeToRemove.target) {
+                return { ...node, data: { ...node.data, parentId: undefined } };
+              }
+              
+              // Remove child from source node
+              if (node.id === edgeToRemove.source) {
+                const children = (node.data.children || []).filter((id: string) => id !== edgeToRemove.target);
+                return { ...node, data: { ...node.data, children } };
+              }
+              
+              return node;
+            });
+          });
+        }
+      }
+    });
+  }, [onEdgesChangeInternal, edges, setNodes]);
 
   const toggleExpand = useCallback((nodeId: string) => {
     setNodes((nds) =>
@@ -268,10 +299,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     }
 
     setNodes((nds) => {
+      const currentNode = nds.find(n => n.id === nodeId);
+      const oldParentId = currentNode?.data.parentId;
+
       const updatedNodes = nds.map((node) => {
         if (node.id === nodeId) {
-          const oldParentId = node.data.parentId;
-          
           if (oldParentId) {
             const oldParent = nds.find(n => n.id === oldParentId);
             if (oldParent) {
@@ -301,6 +333,36 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
       
       return updatedNodes;
     });
+
+    // Update edges to reflect the parent change
+    setEdges((eds) => {
+      const currentNode = nodes.find(n => n.id === nodeId);
+      const oldParentId = currentNode?.data.parentId;
+      
+      // Remove old edge if there was a previous parent
+      let updatedEdges = eds;
+      if (oldParentId) {
+        updatedEdges = updatedEdges.filter(e => !(e.source === oldParentId && e.target === nodeId));
+      }
+      
+      // Add new edge if a parent is set
+      if (parentId) {
+        const newEdgeId = `e${parentId}-${nodeId}`;
+        const edgeExists = updatedEdges.some(e => e.source === parentId && e.target === nodeId);
+        
+        if (!edgeExists) {
+          updatedEdges = [...updatedEdges, {
+            id: newEdgeId,
+            source: parentId,
+            target: nodeId,
+            animated: true,
+            type: 'floating',
+          }];
+        }
+      }
+      
+      return updatedEdges;
+    });
     
     setSelectedNode((selected) => {
       if (selected?.id === nodeId) {
@@ -310,7 +372,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     });
     
     toast.success('Parent node updated');
-  }, [setNodes, nodes]);
+  }, [setNodes, setEdges, nodes]);
 
   const updateNodeSize = useCallback((nodeId: string, width: number, height: number) => {
     setNodes((nds) =>
