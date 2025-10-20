@@ -98,6 +98,24 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
               return node;
             });
           });
+          
+          // Update selectedNode if it's affected by the edge deletion
+          setSelectedNode((selected) => {
+            if (!selected) return selected;
+            
+            // If selected node was the target, remove its parentId
+            if (selected.id === edgeToRemove.target) {
+              return { ...selected, data: { ...selected.data, parentId: undefined } };
+            }
+            
+            // If selected node was the source, remove the target from its children
+            if (selected.id === edgeToRemove.source) {
+              const children = (selected.data.children || []).filter((id: string) => id !== edgeToRemove.target);
+              return { ...selected, data: { ...selected.data, children } };
+            }
+            
+            return selected;
+          });
         }
       }
     });
