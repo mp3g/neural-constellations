@@ -564,7 +564,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         className="bg-[hsl(var(--graph-background))]"
       >
         <Background color="hsl(var(--graph-edge))" gap={16} />
-        <Controls className="bg-card border-border">
+        <Controls className="bg-card border-border" showInteractive={false}>
           <ControlButton onClick={toggleExpandAll} title={allExpanded ? "Collapse All" : "Expand All"}>
             {allExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </ControlButton>
