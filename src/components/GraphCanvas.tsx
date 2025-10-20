@@ -19,7 +19,7 @@ import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
-import { X, Plus, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock } from 'lucide-react';
 import { Button } from './ui/button';
 
 const nodeTypes: NodeTypes = {
@@ -71,6 +71,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState(initialEdges);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [allExpanded, setAllExpanded] = useState(true);
+  const [isInteractive, setIsInteractive] = useState(true);
 
   // Custom edge change handler to sync parent-child relationships
   const onEdgesChange = useCallback((changes: any[]) => {
@@ -261,8 +262,10 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   );
 
   const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    setSelectedNode(node);
-  }, []);
+    if (isInteractive) {
+      setSelectedNode(node);
+    }
+  }, [isInteractive]);
 
   const updateNodeLabel = useCallback((nodeId: string, newLabel: string) => {
     setNodes((nds) =>
@@ -550,7 +553,9 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
-        elementsSelectable
+        elementsSelectable={isInteractive}
+        nodesDraggable={isInteractive}
+        nodesConnectable={isInteractive}
         multiSelectionKeyCode="Shift"
         deleteKeyCode="Delete"
         fitView
@@ -563,6 +568,20 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
           <ControlButton onClick={toggleExpandAll} title={allExpanded ? "Collapse All" : "Expand All"}>
             {allExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </ControlButton>
+          <ControlButton 
+            onClick={() => {
+              setIsInteractive(!isInteractive);
+              if (isInteractive) {
+                setSelectedNode(null);
+                toast.success('Interactivity disabled');
+              } else {
+                toast.success('Interactivity enabled');
+              }
+            }} 
+            title={isInteractive ? "Disable Interactivity" : "Enable Interactivity"}
+          >
+            {isInteractive ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+          </ControlButton>
         </Controls>
       </ReactFlow>
 
@@ -571,13 +590,14 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
           onClick={addNewNode}
           size="sm"
           className="shadow-lg"
+          disabled={!isInteractive}
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Node
         </Button>
       </div>
       
-      {selectedNode && (
+      {selectedNode && isInteractive && (
         <div className="absolute top-4 right-4 bg-card p-4 rounded-lg border border-border shadow-lg space-y-3 w-64">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Edit Node</h3>
