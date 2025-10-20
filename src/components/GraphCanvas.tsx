@@ -21,6 +21,7 @@ import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
 import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock } from 'lucide-react';
 import { Button } from './ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
@@ -72,6 +73,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [allExpanded, setAllExpanded] = useState(true);
   const [isInteractive, setIsInteractive] = useState(true);
+  const isMobile = useIsMobile();
 
   // Custom edge change handler to sync parent-child relationships
   const onEdgesChange = useCallback((changes: any[]) => {
@@ -598,41 +600,50 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
       </div>
       
       {selectedNode && isInteractive && (
-        <div className="absolute top-4 right-4 bg-card p-4 rounded-lg border border-border shadow-lg space-y-3 w-64">
+        <div className={isMobile 
+          ? "fixed inset-0 bg-card p-6 z-50 overflow-y-auto space-y-4" 
+          : "absolute top-4 right-4 bg-card p-4 rounded-lg border border-border shadow-lg space-y-3 w-64"
+        }>
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Edit Node</h3>
+            <h3 className={isMobile ? "text-lg font-semibold text-foreground" : "text-sm font-semibold text-foreground"}>Edit Node</h3>
             <button
               onClick={() => setSelectedNode(null)}
               className="text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Close"
             >
-              <X className="w-4 h-4" />
+              <X className={isMobile ? "w-6 h-6" : "w-4 h-4"} />
             </button>
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground">Label</label>
+            <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Label</label>
             <input
               type="text"
               value={selectedNode.data.label}
               onChange={(e) => updateNodeLabel(selectedNode.id, e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+              className={isMobile 
+                ? "w-full px-4 py-3 bg-background border border-input rounded-md text-base"
+                : "w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+              }
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground">Color</label>
+            <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Color</label>
             <input
               type="color"
               value={selectedNode.data.color || '#a855f7'}
               onChange={(e) => updateNodeColor(selectedNode.id, e.target.value)}
-              className="w-full h-10 rounded-md cursor-pointer"
+              className={isMobile ? "w-full h-12 rounded-md cursor-pointer" : "w-full h-10 rounded-md cursor-pointer"}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-xs text-muted-foreground">Parent Node</label>
+            <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Parent Node</label>
             <select
               value={selectedNode.data.parentId || ''}
               onChange={(e) => updateNodeParent(selectedNode.id, e.target.value)}
-              className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+              className={isMobile 
+                ? "w-full px-4 py-3 bg-background border border-input rounded-md text-base"
+                : "w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+              }
             >
               <option value="">None</option>
               {nodes
@@ -647,22 +658,28 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Width</label>
+              <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Width</label>
               <input
                 type="number"
                 value={Number(selectedNode.style?.width) || 150}
                 onChange={(e) => updateNodeSize(selectedNode.id, Number(e.target.value), Number(selectedNode.style?.height) || 80)}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+                className={isMobile 
+                  ? "w-full px-4 py-3 bg-background border border-input rounded-md text-base"
+                  : "w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+                }
                 min="100"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs text-muted-foreground">Height</label>
+              <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Height</label>
               <input
                 type="number"
                 value={Number(selectedNode.style?.height) || 80}
                 onChange={(e) => updateNodeSize(selectedNode.id, Number(selectedNode.style?.width) || 150, Number(e.target.value))}
-                className="w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+                className={isMobile 
+                  ? "w-full px-4 py-3 bg-background border border-input rounded-md text-base"
+                  : "w-full px-3 py-2 bg-background border border-input rounded-md text-sm"
+                }
                 min="50"
               />
             </div>

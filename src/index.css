@@ -104,6 +104,11 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html, body {
+    min-width: 300px;
+    min-height: 600px;
+  }
+
   body {
     @apply bg-background text-foreground;
   }
