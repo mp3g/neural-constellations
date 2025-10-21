@@ -568,7 +568,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         <Background color="hsl(var(--graph-edge))" gap={16} />
         <Controls className="bg-card border-border" showInteractive={false}>
           <ControlButton onClick={toggleExpandAll} title={allExpanded ? "Collapse All" : "Expand All"}>
-            {allExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            {allExpanded ? <ChevronDown className="w-4 h-4 text-black dark:text-white" /> : <ChevronRight className="w-4 h-4 text-black dark:text-white" />}
           </ControlButton>
           <ControlButton 
             onClick={() => {
@@ -582,7 +582,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
             }} 
             title={isInteractive ? "Disable Interactivity" : "Enable Interactivity"}
           >
-            {isInteractive ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+            {isInteractive ? <Unlock className="w-4 h-4 text-black dark:text-white" /> : <Lock className="w-4 h-4 text-black dark:text-white" />}
           </ControlButton>
         </Controls>
       </ReactFlow>
