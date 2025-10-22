@@ -16,9 +16,9 @@ const Index = () => {
     <div className="flex flex-col h-screen bg-background">
       <header className="border-b border-border bg-card px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-foreground">Mental Nebula</h1>
+          <h1 className="text-lg font-bold text-foreground">Neural Constellations</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Map your universe of ideas.
+            Map your own universe of ideas.
           </p>
         </div>
         <div className="flex gap-2">
