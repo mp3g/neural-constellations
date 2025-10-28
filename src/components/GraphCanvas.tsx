@@ -1,4 +1,4 @@
-import { useCallback, useState, forwardRef, useImperativeHandle, useMemo } from 'react';
+import { useCallback, useState, forwardRef, useImperativeHandle, useMemo, useRef, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -19,7 +19,7 @@ import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
-import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock, Undo, Redo } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -74,6 +74,95 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
   const [allExpanded, setAllExpanded] = useState(true);
   const [isInteractive, setIsInteractive] = useState(true);
   const isMobile = useIsMobile();
+
+  // History management for undo/redo
+  const history = useRef<{ nodes: Node[]; edges: Edge[] }[]>([{ nodes: initialNodes, edges: initialEdges }]);
+  const historyIndex = useRef(0);
+  const isUndoRedoAction = useRef(false);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  // Save state to history
+  const saveToHistory = useCallback((newNodes: Node[], newEdges: Edge[]) => {
+    if (isUndoRedoAction.current) return;
+    
+    // Remove any states after current index (when user makes new change after undo)
+    history.current = history.current.slice(0, historyIndex.current + 1);
+    
+    // Add new state
+    history.current.push({
+      nodes: JSON.parse(JSON.stringify(newNodes)),
+      edges: JSON.parse(JSON.stringify(newEdges)),
+    });
+    
+    // Limit history to 50 states
+    if (history.current.length > 50) {
+      history.current.shift();
+    } else {
+      historyIndex.current++;
+    }
+    
+    // Update undo/redo button states
+    setCanUndo(historyIndex.current > 0);
+    setCanRedo(historyIndex.current < history.current.length - 1);
+  }, []);
+
+  // Track changes to nodes and edges
+  useEffect(() => {
+    saveToHistory(nodes, edges);
+  }, [nodes, edges, saveToHistory]);
+
+  // Undo function
+  const handleUndo = useCallback(() => {
+    if (historyIndex.current > 0) {
+      isUndoRedoAction.current = true;
+      historyIndex.current--;
+      const prevState = history.current[historyIndex.current];
+      setNodes(JSON.parse(JSON.stringify(prevState.nodes)));
+      setEdges(JSON.parse(JSON.stringify(prevState.edges)));
+      setSelectedNode(null);
+      setCanUndo(historyIndex.current > 0);
+      setCanRedo(historyIndex.current < history.current.length - 1);
+      toast.success('Undo');
+      setTimeout(() => {
+        isUndoRedoAction.current = false;
+      }, 0);
+    }
+  }, [setNodes, setEdges]);
+
+  // Redo function
+  const handleRedo = useCallback(() => {
+    if (historyIndex.current < history.current.length - 1) {
+      isUndoRedoAction.current = true;
+      historyIndex.current++;
+      const nextState = history.current[historyIndex.current];
+      setNodes(JSON.parse(JSON.stringify(nextState.nodes)));
+      setEdges(JSON.parse(JSON.stringify(nextState.edges)));
+      setSelectedNode(null);
+      setCanUndo(historyIndex.current > 0);
+      setCanRedo(historyIndex.current < history.current.length - 1);
+      toast.success('Redo');
+      setTimeout(() => {
+        isUndoRedoAction.current = false;
+      }, 0);
+    }
+  }, [setNodes, setEdges]);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
+        event.preventDefault();
+        handleUndo();
+      } else if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) {
+        event.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   // Custom edge change handler to sync parent-child relationships
   const onEdgesChange = useCallback((changes: any[]) => {
@@ -567,6 +656,20 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
       >
         <Background color="hsl(var(--graph-edge))" gap={16} />
         <Controls className="bg-card border-border" showInteractive={false}>
+          <ControlButton 
+            onClick={handleUndo} 
+            title="Undo (Ctrl+Z)"
+            disabled={!canUndo}
+          >
+            <Undo className="w-4 h-4 text-black dark:text-white" />
+          </ControlButton>
+          <ControlButton 
+            onClick={handleRedo} 
+            title="Redo (Ctrl+Y)"
+            disabled={!canRedo}
+          >
+            <Redo className="w-4 h-4 text-black dark:text-white" />
+          </ControlButton>
           <ControlButton onClick={toggleExpandAll} title={allExpanded ? "Collapse All" : "Expand All"}>
             {allExpanded ? <ChevronDown className="w-4 h-4 text-black dark:text-white" /> : <ChevronRight className="w-4 h-4 text-black dark:text-white" />}
           </ControlButton>
