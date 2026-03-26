@@ -826,6 +826,29 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
                 ))}
             </select>
           </div>
+          <div className="space-y-2">
+            <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Layer</label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size={isMobile ? "default" : "sm"}
+                onClick={() => sendToFront(selectedNode.id)}
+                className="w-full"
+              >
+                <ArrowUpToLine className="w-4 h-4 mr-1" />
+                To Front
+              </Button>
+              <Button
+                variant="outline"
+                size={isMobile ? "default" : "sm"}
+                onClick={() => sendToBack(selectedNode.id)}
+                className="w-full"
+              >
+                <ArrowDownToLine className="w-4 h-4 mr-1" />
+                To Back
+              </Button>
+            </div>
+          </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
               <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Width</label>
