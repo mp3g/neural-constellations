@@ -580,6 +580,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
         isExpanded: node.data.isExpanded ?? true,
         width: node.style?.width || node.width || 150,
         height: node.style?.height || node.height || 80,
+        zIndex: node.zIndex ?? node.style?.zIndex ?? 0,
       })),
       edges: edges.map(edge => ({
         id: edge.id,
@@ -625,9 +626,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
               children: node.children || [],
               isExpanded: node.isExpanded ?? true,
             },
+            zIndex: node.zIndex ?? 0,
             style: { 
               width: node.width || 150, 
-              height: node.height || 80 
+              height: node.height || 80,
+              zIndex: node.zIndex ?? 0,
             },
           }));
 
