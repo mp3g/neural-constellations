@@ -148,10 +148,59 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     }
   }, [setNodes, setEdges]);
 
-  // Keyboard shortcuts for undo/redo
+  // Clipboard for copy/paste
+  const clipboard = useRef<Node[]>([]);
+
+  const handleCopy = useCallback(() => {
+    const selected = nodes.filter(n => n.selected);
+    if (selected.length === 0 && selectedNode) {
+      clipboard.current = [JSON.parse(JSON.stringify(selectedNode))];
+      toast.success('Node copied');
+    } else if (selected.length > 0) {
+      clipboard.current = JSON.parse(JSON.stringify(selected));
+      toast.success(`${selected.length} node(s) copied`);
+    }
+  }, [nodes, selectedNode]);
+
+  const handlePaste = useCallback(() => {
+    if (clipboard.current.length === 0) return;
+    if (!isInteractive) return;
+
+    const offset = 50;
+    const newNodes: Node[] = clipboard.current.map((node) => {
+      const newId = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      return {
+        ...node,
+        id: newId,
+        position: { x: node.position.x + offset, y: node.position.y + offset },
+        data: {
+          ...node.data,
+          label: `${node.data.label} (copy)`,
+          parentId: undefined,
+          children: [],
+        },
+        selected: false,
+      };
+    });
+
+    setNodes((nds) => [...nds, ...newNodes]);
+    toast.success(`${newNodes.length} node(s) pasted`);
+  }, [setNodes, isInteractive]);
+
+  // Keyboard shortcuts for undo/redo/copy/paste
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
+      // Skip if user is typing in an input
+      const tag = (event.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if ((event.ctrlKey || event.metaKey) && event.key === 'c') {
+        event.preventDefault();
+        handleCopy();
+      } else if ((event.ctrlKey || event.metaKey) && event.key === 'v') {
+        event.preventDefault();
+        handlePaste();
+      } else if ((event.ctrlKey || event.metaKey) && event.key === 'z' && !event.shiftKey) {
         event.preventDefault();
         handleUndo();
       } else if ((event.ctrlKey || event.metaKey) && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) {
@@ -162,7 +211,7 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo, handleRedo]);
+  }, [handleUndo, handleRedo, handleCopy, handlePaste]);
 
   // Custom edge change handler to sync parent-child relationships
   const onEdgesChange = useCallback((changes: any[]) => {
