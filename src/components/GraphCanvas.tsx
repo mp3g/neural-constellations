@@ -626,9 +626,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
               children: node.children || [],
               isExpanded: node.isExpanded ?? true,
             },
+            zIndex: node.zIndex ?? 0,
             style: { 
               width: node.width || 150, 
-              height: node.height || 80 
+              height: node.height || 80,
+              zIndex: node.zIndex ?? 0,
             },
           }));
 
