@@ -19,7 +19,7 @@ import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
-import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock, Undo, Redo } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock, Undo, Redo, ArrowUpToLine, ArrowDownToLine } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
