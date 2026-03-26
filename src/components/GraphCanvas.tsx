@@ -537,21 +537,21 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
 
   const sendToFront = useCallback((nodeId: string) => {
     setNodes((nds) => {
-      const maxZ = Math.max(...nds.map(n => n.zIndex ?? 0));
-      return nds.map(n => n.id === nodeId ? { ...n, zIndex: maxZ + 1 } : n);
+      const maxZ = Math.max(...nds.map(n => n.zIndex ?? n.style?.zIndex as number ?? 0));
+      const newZ = maxZ + 1;
+      return nds.map(n => n.id === nodeId ? { ...n, zIndex: newZ, style: { ...n.style, zIndex: newZ } } : n);
     });
-    setSelectedNode((s) => s?.id === nodeId ? { ...s, zIndex: (nodes.reduce((max, n) => Math.max(max, n.zIndex ?? 0), 0)) + 1 } : s);
     toast.success('Node sent to front');
-  }, [setNodes, nodes]);
+  }, [setNodes]);
 
   const sendToBack = useCallback((nodeId: string) => {
     setNodes((nds) => {
-      const minZ = Math.min(...nds.map(n => n.zIndex ?? 0));
-      return nds.map(n => n.id === nodeId ? { ...n, zIndex: minZ - 1 } : n);
+      const minZ = Math.min(...nds.map(n => n.zIndex ?? n.style?.zIndex as number ?? 0));
+      const newZ = minZ - 1;
+      return nds.map(n => n.id === nodeId ? { ...n, zIndex: newZ, style: { ...n.style, zIndex: newZ } } : n);
     });
-    setSelectedNode((s) => s?.id === nodeId ? { ...s, zIndex: (nodes.reduce((min, n) => Math.min(min, n.zIndex ?? 0), 0)) - 1 } : s);
     toast.success('Node sent to back');
-  }, [setNodes, nodes]);
+  }, [setNodes]);
 
   const updateNodeSize = useCallback((nodeId: string, width: number, height: number) => {
     setNodes((nds) =>
