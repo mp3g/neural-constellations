@@ -535,6 +535,24 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     toast.success('Parent node updated');
   }, [setNodes, setEdges, nodes]);
 
+  const sendToFront = useCallback((nodeId: string) => {
+    setNodes((nds) => {
+      const maxZ = Math.max(...nds.map(n => n.zIndex ?? 0));
+      return nds.map(n => n.id === nodeId ? { ...n, zIndex: maxZ + 1 } : n);
+    });
+    setSelectedNode((s) => s?.id === nodeId ? { ...s, zIndex: (nodes.reduce((max, n) => Math.max(max, n.zIndex ?? 0), 0)) + 1 } : s);
+    toast.success('Node sent to front');
+  }, [setNodes, nodes]);
+
+  const sendToBack = useCallback((nodeId: string) => {
+    setNodes((nds) => {
+      const minZ = Math.min(...nds.map(n => n.zIndex ?? 0));
+      return nds.map(n => n.id === nodeId ? { ...n, zIndex: minZ - 1 } : n);
+    });
+    setSelectedNode((s) => s?.id === nodeId ? { ...s, zIndex: (nodes.reduce((min, n) => Math.min(min, n.zIndex ?? 0), 0)) - 1 } : s);
+    toast.success('Node sent to back');
+  }, [setNodes, nodes]);
+
   const updateNodeSize = useCallback((nodeId: string, width: number, height: number) => {
     setNodes((nds) =>
       nds.map((node) =>
