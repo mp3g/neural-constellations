@@ -19,7 +19,7 @@ import 'reactflow/dist/style.css';
 import CustomNode from './CustomNode';
 import FloatingEdge from './FloatingEdge';
 import { toast } from 'sonner';
-import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock, Undo, Redo } from 'lucide-react';
+import { X, Plus, ChevronDown, ChevronRight, Lock, Unlock, Undo, Redo, ArrowUpToLine, ArrowDownToLine } from 'lucide-react';
 import { Button } from './ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -535,6 +535,24 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
     toast.success('Parent node updated');
   }, [setNodes, setEdges, nodes]);
 
+  const sendToFront = useCallback((nodeId: string) => {
+    setNodes((nds) => {
+      const maxZ = Math.max(...nds.map(n => n.zIndex ?? 0));
+      return nds.map(n => n.id === nodeId ? { ...n, zIndex: maxZ + 1 } : n);
+    });
+    setSelectedNode((s) => s?.id === nodeId ? { ...s, zIndex: (nodes.reduce((max, n) => Math.max(max, n.zIndex ?? 0), 0)) + 1 } : s);
+    toast.success('Node sent to front');
+  }, [setNodes, nodes]);
+
+  const sendToBack = useCallback((nodeId: string) => {
+    setNodes((nds) => {
+      const minZ = Math.min(...nds.map(n => n.zIndex ?? 0));
+      return nds.map(n => n.id === nodeId ? { ...n, zIndex: minZ - 1 } : n);
+    });
+    setSelectedNode((s) => s?.id === nodeId ? { ...s, zIndex: (nodes.reduce((min, n) => Math.min(min, n.zIndex ?? 0), 0)) - 1 } : s);
+    toast.success('Node sent to back');
+  }, [setNodes, nodes]);
+
   const updateNodeSize = useCallback((nodeId: string, width: number, height: number) => {
     setNodes((nds) =>
       nds.map((node) =>
@@ -807,6 +825,29 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
                   </option>
                 ))}
             </select>
+          </div>
+          <div className="space-y-2">
+            <label className={isMobile ? "text-sm text-muted-foreground" : "text-xs text-muted-foreground"}>Layer</label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size={isMobile ? "default" : "sm"}
+                onClick={() => sendToFront(selectedNode.id)}
+                className="w-full"
+              >
+                <ArrowUpToLine className="w-4 h-4 mr-1" />
+                To Front
+              </Button>
+              <Button
+                variant="outline"
+                size={isMobile ? "default" : "sm"}
+                onClick={() => sendToBack(selectedNode.id)}
+                className="w-full"
+              >
+                <ArrowDownToLine className="w-4 h-4 mr-1" />
+                To Back
+              </Button>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">
