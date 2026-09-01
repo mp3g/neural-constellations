@@ -677,10 +677,14 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
       return;
     }
 
+    viewportElement.classList.add('exporting');
+
     toPng(viewportElement, {
       backgroundColor: '#1a1a2e',
       width: imageWidth,
       height: imageHeight,
+      pixelRatio: 2,
+      cacheBust: true,
       style: {
         width: `${imageWidth}px`,
         height: `${imageHeight}px`,
@@ -694,8 +698,11 @@ export const GraphCanvas = forwardRef<GraphCanvasRef>((props, ref) => {
       toast.success('Graph exported as PNG');
     }).catch(() => {
       toast.error('Failed to export graph as PNG');
+    }).finally(() => {
+      viewportElement.classList.remove('exporting');
     });
   }, [nodes]);
+
 
   useImperativeHandle(ref, () => ({
     exportToJSON,

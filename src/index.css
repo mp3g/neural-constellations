@@ -136,4 +136,27 @@ All colors MUST be HSL.
     border: 2px solid hsl(var(--accent));
     box-shadow: 0 0 10px hsl(var(--accent)), 0 0 20px hsl(var(--accent));
   }
+
+  /* Crisp rendering while exporting to PNG: no blurry glows or filled path shadows */
+  .exporting .react-flow__edge-path {
+    fill: none !important;
+    filter: none !important;
+  }
+
+  .exporting .react-flow__edge path,
+  .exporting .react-flow__edges path {
+    fill: none !important;
+    filter: none !important;
+  }
+
+  .exporting .react-flow__node * {
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+  }
+
+  .exporting .react-flow__handle {
+    box-shadow: none !important;
+  }
 }
+
