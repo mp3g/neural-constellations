@@ -149,10 +149,20 @@ All colors MUST be HSL.
     filter: none !important;
   }
 
+  .exporting .react-flow__node,
   .exporting .react-flow__node * {
     box-shadow: none !important;
     filter: none !important;
+    backdrop-filter: none !important;
     text-shadow: none !important;
+  }
+
+  .exporting .react-flow__node {
+    outline: none !important;
+  }
+
+  .exporting .react-flow__resize-control {
+    display: none !important;
   }
 
   .exporting .react-flow__handle {
